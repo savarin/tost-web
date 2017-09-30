@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>signup</title>
+</head>
+<body>
+    <form method="POST" action="/signup">
+        {{ form.hidden_tag() }}
+        {{ form.email.label }} {{ form.email(size=32) }}
+        <input type="submit" value="signup">
+    </form>
+</body>
+</html>
