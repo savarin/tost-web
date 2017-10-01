@@ -73,6 +73,10 @@ def create_app():
         if cmd == "list":
             return auth
 
+        elif cmd == "create":
+            data = {"body": args[0]}
+            return add_content(auth, data=data)
+
     def compose_request(args, method, cmd):
         result, response = execute_request(client, args, method, cmd)
 
@@ -152,6 +156,17 @@ def create_app():
 
             data = compose_request(args, "multiple", cmd)
             return render_template("create.html", form=form, data=data)
+
+        if request.method == "POST":
+            if not form.validate_on_submit():
+                return "form did not validate"
+
+            body = form.body.data
+
+            cmd = "create"
+            args = resolve_argv(cmd, [body])
+
+            return compose_request(args, "individual", cmd)
 
 
     @app.route("/logout")

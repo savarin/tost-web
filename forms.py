@@ -8,11 +8,10 @@ class SignupForm(Form):
 
 
 class LoginForm(Form):
-    email = StringField("email")
     token = StringField("token")
     submit = SubmitField("login")    
 
 
 class CreateForm(Form):
-    tost = StringField("tost")
+    body = StringField("body")
     submit = SubmitField("create")
