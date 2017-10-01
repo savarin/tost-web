@@ -117,6 +117,14 @@ def create_app():
             body = response["data"]["tost"]["body"]
             return (access_token + ": " + body)
 
+        elif cmd == "access":
+            result = []
+
+            for k, v in response["data"]["propagations"].iteritems():
+                result.append(v["access-token"] + ": " + k)
+
+            return result
+
         return response["msg"]
 
     @app.route("/signup", methods=["GET", "POST"])
@@ -206,7 +214,21 @@ def create_app():
             return compose_request(args, "individual", cmd)
 
 
-    @app.route("/logout")
+    @app.route("/tost/<access_token>/propagation", methods=["GET"])
+    @login_required
+    def propagation(access_token):
+        cmd = "access"
+        args = resolve_argv(cmd, [access_token])
+
+        result = ""
+
+        for item in compose_request(args, "permit", cmd):
+            result += item + "<br>"
+
+        return result
+
+
+    @app.route("/logout")   
     @login_required
     def logout():
         logout_user()
