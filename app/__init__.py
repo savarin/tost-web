@@ -1,6 +1,5 @@
 from flask import Flask, request, render_template
-from flask_login import LoginManager, login_user, logout_user, login_required, \
-                        current_user
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_sqlalchemy import SQLAlchemy
 from requests.auth import HTTPBasicAuth
 import sys
@@ -8,7 +7,7 @@ import sys
 sys.path.insert(0, "../tost-client")
 import tostclient
 
-from forms import SignupForm, LoginForm, CreateForm, EditForm, UpgradeForm
+from forms import SignupForm, LoginForm, CreateForm, EditForm, UpgradeForm, DisableForm
 from helpers import validate_email, validate_auth_token
 
 
@@ -109,10 +108,8 @@ def create_app():
 
         elif cmd == "list":
             result = []
-
             for k, v in response["data"]["tosts"].iteritems():
                 result.append(k + ": " + v)
-
             return result
 
         elif cmd == "view":
@@ -122,10 +119,8 @@ def create_app():
 
         elif cmd == "access":
             result = []
-
             for k, v in response["data"]["propagations"].iteritems():
                 result.append(v["access-token"] + ": " + k)
-
             return result
 
         return response["msg"]
@@ -133,6 +128,7 @@ def create_app():
     @app.route("/signup", methods=["GET", "POST"])
     def signup():
         form = SignupForm()
+
         if request.method == "GET":
             return render_template("signup.html", form=form)
     
@@ -153,6 +149,7 @@ def create_app():
     @app.route("/login", methods=["GET", "POST"])
     def login():
         form = LoginForm()
+
         if request.method == "GET":
             return render_template("login.html", form=form)
     
@@ -174,6 +171,7 @@ def create_app():
     @login_required
     def tost():
         form = CreateForm()
+
         if request.method == "GET":
             cmd = "list"
             args = resolve_argv(cmd, [])
@@ -198,6 +196,7 @@ def create_app():
     @login_required
     def view_tost(access_token):
         form = EditForm()
+
         if request.method == "GET":
             cmd = "view"
             args = resolve_argv(cmd, [access_token])
@@ -234,6 +233,7 @@ def create_app():
     @login_required
     def upgrade_propagation(access_token):
         form = UpgradeForm()
+
         if request.method == "GET":
             return render_template("upgrade.html", form=form,
                     access_token=access_token)
@@ -245,6 +245,26 @@ def create_app():
             token = form.token.data
 
             cmd = "upgrade"
+            args = resolve_argv(cmd, [access_token, token])
+
+            return compose_request(args, "switch", cmd)
+
+    @app.route("/tost/<access_token>/propagation/disable", methods=["GET", "POST"])
+    @login_required
+    def disable_propagation(access_token):
+        form = DisableForm()
+        
+        if request.method == "GET":
+            return render_template("disable.html", form=form,
+                    access_token=access_token)
+
+        elif request.method == "POST":
+            if not form.validate_on_submit():
+                return "form did not validate"
+
+            token = form.token.data
+
+            cmd = "disable"
             args = resolve_argv(cmd, [access_token, token])
 
             return compose_request(args, "switch", cmd)
