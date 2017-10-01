@@ -1,12 +1,14 @@
 from flask import Flask, request, render_template
-from flask_login import LoginManager, login_user
+from flask_login import LoginManager, login_user, logout_user, login_required, \
+                        current_user
 from flask_sqlalchemy import SQLAlchemy
+from requests.auth import HTTPBasicAuth
 import sys
 
 sys.path.insert(0, "../tost-client")
 import tostclient
 
-from forms import SignupForm, LoginForm
+from forms import SignupForm, LoginForm, CreateForm
 from helpers import validate_email, validate_auth_token
 
 
@@ -41,32 +43,63 @@ def create_app():
     base_domain = "http://localhost:5000"
     client = tostclient.TostClient(base_domain)
 
+    def get_auth():
+        email = current_user.email
+        auth_token = current_user.auth_token
+
+        return {"auth": HTTPBasicAuth(email, auth_token)}
+    
+    def add_content(auth, ppgn_token="", data={}):
+        auth["ppgn_token"] = ppgn_token
+        auth["data"] = data
+
+        return auth
+
     def resolve_argv(cmd, args):
         if cmd == "signup":
             if not validate_email(args[0]):
-                return False, "invalid e-mail"
+                return "invalid e-mail"
         
-            return True, {"email": args[0]}
+            return {"email": args[0]}
         
         elif cmd == "login":
             if not validate_auth_token(args[0]):
-                return False, "invalid auth token"
+                return "invalid auth token"
     
-            return True, {"auth_token": args[0]}
+            return {"auth_token": args[0]}
+
+        auth = get_auth()
+
+        if cmd == "list":
+            return auth
 
     def compose_request(args, method, cmd):
-        response = execute_request(client, args, method, cmd)
+        result, response = execute_request(client, args, method, cmd)
 
-        if not response[0]:
-            return response[1]
+        if not result:
+            return response
 
         if cmd == "login":
-            user = User(args["email"], args["auth_token"])
-            user.save()
+            email = response["data"]["email"]
+            auth_token = response["data"]["auth_token"]
+
+            user = User.query.filter_by(email=email).first()
+
+            if not user:
+                user = User(email, auth_token)
+                user.save()
 
             login_user(user)
 
-        return response[1]["msg"]
+        if cmd == "list":
+            result = []
+
+            for k, v in response["data"]["tosts"].iteritems():
+                result.append(k + ": " + v)
+
+            return result
+
+        return response["msg"]
 
     @app.route("/signup", methods=["GET", "POST"])
     def signup():
@@ -83,10 +116,10 @@ def create_app():
             cmd = "signup"
             args = resolve_argv(cmd, [email])
             
-            if not args[0]:
-                return args[1]
+            if isinstance(args, str):
+                return args
 
-            return compose_request(args[1], "start", cmd)
+            return compose_request(args, "start", cmd)
 
     @app.route("/login", methods=["GET", "POST"])
     def login():
@@ -103,13 +136,30 @@ def create_app():
             cmd = "login"
             args = resolve_argv(cmd, [auth_token])
             
-            if not args[0]:
-                return args[1]
+            if isinstance(args, str):
+                return args
 
-            email = form.email.data
-            args[1]["email"] = email
+            return compose_request(args, "start", cmd)
 
-            return compose_request(args[1], "start", cmd)
+    @app.route("/tost", methods=["GET", "POST"])
+    @login_required
+    def tost():
+        form = CreateForm()
+        if request.method == "GET":
+
+            cmd = "list"
+            args = resolve_argv(cmd, [])
+
+            data = compose_request(args, "multiple", cmd)
+            return render_template("create.html", form=form, data=data)
+
+
+    @app.route("/logout")
+    @login_required
+    def logout():
+        logout_user()
+        return "logout successful"
+
 
     @login_manager.user_loader
     def load_user(email):

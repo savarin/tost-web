@@ -11,3 +11,8 @@ class LoginForm(Form):
     email = StringField("email")
     token = StringField("token")
     submit = SubmitField("login")    
+
+
+class CreateForm(Form):
+    tost = StringField("tost")
+    submit = SubmitField("create")

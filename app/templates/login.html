@@ -7,8 +7,7 @@
 <body>
     <form method="POST" action="/login">
         {{ form.hidden_tag() }}
-        {{ form.email.label }} {{ form.email(size=32) }}
-        {{ form.token.label }} {{ form.token(size=32) }}
+        {{ form.token(size=32) }}
         <input type="submit" value="login">
     </form>
 </body>
