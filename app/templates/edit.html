@@ -5,7 +5,7 @@
     <title>edit</title>
 </head>
 <body>
-    <form method="POST" action="/tost">
+    <form method="POST" action="/tost/{{access_token}}">
         {{ form.hidden_tag() }}
         {{ form.body(size=64) }}
         <input type="submit" value="create">

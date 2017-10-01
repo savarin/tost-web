@@ -82,6 +82,10 @@ def create_app():
         if cmd in set(["view", "access"]):
             return add_content(auth, ppgn_token=ppgn_token)
 
+        elif cmd == "edit":
+            data = {"body": args[1]}
+            return add_content(auth, ppgn_token=ppgn_token, data=data)
+
     def compose_request(args, method, cmd):
         result, response = execute_request(client, args, method, cmd)
 
@@ -100,7 +104,7 @@ def create_app():
 
             login_user(user)
 
-        if cmd == "list":
+        elif cmd == "list":
             result = []
 
             for k, v in response["data"]["tosts"].iteritems():
@@ -108,7 +112,7 @@ def create_app():
 
             return result
 
-        if cmd == "view":
+        elif cmd == "view":
             access_token = response["data"]["tost"]["access-token"]
             body = response["data"]["tost"]["body"]
             return (access_token + ": " + body)
@@ -187,7 +191,19 @@ def create_app():
             args = resolve_argv(cmd, [access_token])
 
             data = compose_request(args, "individual", cmd)
-            return render_template("edit.html", form=form, data=data)
+            return render_template("edit.html", form=form, data=data,
+                    access_token=access_token)
+
+        elif request.method == "POST":
+            if not form.validate_on_submit():
+                return "form did not validate"
+
+            body = form.body.data
+
+            cmd = "edit"
+            args = resolve_argv(cmd, [access_token, body])
+
+            return compose_request(args, "individual", cmd)
 
 
     @app.route("/logout")
