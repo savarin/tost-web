@@ -8,7 +8,7 @@ import sys
 sys.path.insert(0, "../tost-client")
 import tostclient
 
-from forms import SignupForm, LoginForm, CreateForm, EditForm
+from forms import SignupForm, LoginForm, CreateForm, EditForm, UpgradeForm
 from helpers import validate_email, validate_auth_token
 
 
@@ -22,7 +22,6 @@ def execute_request(client, args, method, cmd):
         return False, str(e)
 
     return True, response
-
 
 def create_app():
     from models import User
@@ -84,6 +83,10 @@ def create_app():
 
         elif cmd == "edit":
             data = {"body": args[1]}
+            return add_content(auth, ppgn_token=ppgn_token, data=data)
+
+        elif cmd in set(["upgrade", "disable"]):
+            data = {"src-access-token": args[1]}
             return add_content(auth, ppgn_token=ppgn_token, data=data)
 
     def compose_request(args, method, cmd):
@@ -176,6 +179,8 @@ def create_app():
             args = resolve_argv(cmd, [])
 
             data = compose_request(args, "multiple", cmd)
+            return str(data)
+
             return render_template("create.html", form=form, data=data)
 
         elif request.method == "POST":
@@ -188,7 +193,6 @@ def create_app():
             args = resolve_argv(cmd, [body])
 
             return compose_request(args, "individual", cmd)
-
 
     @app.route("/tost/<access_token>", methods=["GET", "POST"])
     @login_required
@@ -213,7 +217,6 @@ def create_app():
 
             return compose_request(args, "individual", cmd)
 
-
     @app.route("/tost/<access_token>/propagation", methods=["GET"])
     @login_required
     def propagation(access_token):
@@ -227,13 +230,29 @@ def create_app():
 
         return result
 
-
-    @app.route("/logout")   
+    @app.route("/tost/<access_token>/propagation/upgrade", methods=["GET", "POST"])
     @login_required
-    def logout():
-        logout_user()
-        return "logout successful"
+    def upgrade_propagation(access_token):
+        form = UpgradeForm()
+        if request.method == "GET":
+            return render_template("upgrade.html", form=form,
+                    access_token=access_token)
 
+        elif request.method == "POST":
+            if not form.validate_on_submit():
+                return "form did not validate"
+
+            token = form.token.data
+
+            cmd = "upgrade"
+            args = resolve_argv(cmd, [access_token, token])
+
+            return compose_request(args, "switch", cmd)
+
+    @app.route("/current")
+    @login_required
+    def current():
+        return str(current_user.email)
 
     @login_manager.user_loader
     def load_user(email):

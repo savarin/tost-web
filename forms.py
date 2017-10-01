@@ -20,3 +20,8 @@ class CreateForm(Form):
 class EditForm(Form):
     body = StringField("body")
     submit = SubmitField("edit")
+
+
+class UpgradeForm(Form):
+    token = StringField("token")
+    submit = SubmitField("upgrade")
