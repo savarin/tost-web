@@ -22,6 +22,7 @@ def execute_request(client, args, method, cmd):
 
     return True, response
 
+
 def create_app():
     from models import User
 
@@ -46,7 +47,7 @@ def create_app():
         auth_token = current_user.auth_token
 
         return {"auth": HTTPBasicAuth(email, auth_token)}
-    
+
     def add_content(auth, ppgn_token="", data={}):
         auth["ppgn_token"] = ppgn_token
         auth["data"] = data
@@ -57,13 +58,13 @@ def create_app():
         if cmd == "signup":
             if not validate_email(args[0]):
                 return "invalid e-mail"
-        
+
             return {"email": args[0]}
-        
+
         elif cmd == "login":
             if not validate_auth_token(args[0]):
                 return "invalid auth token"
-    
+
             return {"auth_token": args[0]}
 
         auth = get_auth()
@@ -131,7 +132,7 @@ def create_app():
 
         if request.method == "GET":
             return render_template("signup.html", form=form)
-    
+
         elif request.method == "POST":
             if not form.validate_on_submit():
                 return "form did not validate"
@@ -140,7 +141,7 @@ def create_app():
 
             cmd = "signup"
             args = resolve_argv(cmd, [email])
-            
+
             if isinstance(args, str):
                 return args
 
@@ -152,7 +153,7 @@ def create_app():
 
         if request.method == "GET":
             return render_template("login.html", form=form)
-    
+
         elif request.method == "POST":
             if not form.validate_on_submit():
                 return "form did not validate"
@@ -161,7 +162,7 @@ def create_app():
 
             cmd = "login"
             args = resolve_argv(cmd, [auth_token])
-            
+
             if isinstance(args, str):
                 return args
 
@@ -177,8 +178,6 @@ def create_app():
             args = resolve_argv(cmd, [])
 
             data = compose_request(args, "multiple", cmd)
-            return str(data)
-
             return render_template("create.html", form=form, data=data)
 
         elif request.method == "POST":
@@ -203,7 +202,7 @@ def create_app():
 
             data = compose_request(args, "individual", cmd)
             return render_template("edit.html", form=form, data=data,
-                    access_token=access_token)
+                                   access_token=access_token)
 
         elif request.method == "POST":
             if not form.validate_on_submit():
@@ -236,7 +235,7 @@ def create_app():
 
         if request.method == "GET":
             return render_template("upgrade.html", form=form,
-                    access_token=access_token)
+                                   access_token=access_token)
 
         elif request.method == "POST":
             if not form.validate_on_submit():
@@ -253,10 +252,10 @@ def create_app():
     @login_required
     def disable_propagation(access_token):
         form = DisableForm()
-        
+
         if request.method == "GET":
             return render_template("disable.html", form=form,
-                    access_token=access_token)
+                                   access_token=access_token)
 
         elif request.method == "POST":
             if not form.validate_on_submit():
@@ -269,10 +268,11 @@ def create_app():
 
             return compose_request(args, "switch", cmd)
 
-    @app.route("/current")
+    @app.route("/logout")
     @login_required
-    def current():
-        return str(current_user.email)
+    def logout():
+        logout_user()
+        return "logout successful"
 
     @login_manager.user_loader
     def load_user(email):
