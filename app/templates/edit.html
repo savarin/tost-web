@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>create</title>
+    <title>edit</title>
 </head>
 <body>
     <form method="POST" action="/tost">
@@ -11,9 +11,7 @@
         <input type="submit" value="create">
         <br>
         <br>
-        {% for d in data %}
-            {{ d }} <br>
-        {% endfor %}
+        {{ data }}
     </form>
 </body>
 </html>

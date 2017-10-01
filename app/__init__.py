@@ -8,7 +8,7 @@ import sys
 sys.path.insert(0, "../tost-client")
 import tostclient
 
-from forms import SignupForm, LoginForm, CreateForm
+from forms import SignupForm, LoginForm, CreateForm, EditForm
 from helpers import validate_email, validate_auth_token
 
 
@@ -77,6 +77,11 @@ def create_app():
             data = {"body": args[0]}
             return add_content(auth, data=data)
 
+        ppgn_token = args[0]
+
+        if cmd in set(["view", "access"]):
+            return add_content(auth, ppgn_token=ppgn_token)
+
     def compose_request(args, method, cmd):
         result, response = execute_request(client, args, method, cmd)
 
@@ -102,6 +107,11 @@ def create_app():
                 result.append(k + ": " + v)
 
             return result
+
+        if cmd == "view":
+            access_token = response["data"]["tost"]["access-token"]
+            body = response["data"]["tost"]["body"]
+            return (access_token + ": " + body)
 
         return response["msg"]
 
@@ -150,14 +160,13 @@ def create_app():
     def tost():
         form = CreateForm()
         if request.method == "GET":
-
             cmd = "list"
             args = resolve_argv(cmd, [])
 
             data = compose_request(args, "multiple", cmd)
             return render_template("create.html", form=form, data=data)
 
-        if request.method == "POST":
+        elif request.method == "POST":
             if not form.validate_on_submit():
                 return "form did not validate"
 
@@ -167,6 +176,18 @@ def create_app():
             args = resolve_argv(cmd, [body])
 
             return compose_request(args, "individual", cmd)
+
+
+    @app.route("/tost/<access_token>", methods=["GET", "POST"])
+    @login_required
+    def view_tost(access_token):
+        form = EditForm()
+        if request.method == "GET":
+            cmd = "view"
+            args = resolve_argv(cmd, [access_token])
+
+            data = compose_request(args, "individual", cmd)
+            return render_template("edit.html", form=form, data=data)
 
 
     @app.route("/logout")

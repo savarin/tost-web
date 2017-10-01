@@ -15,3 +15,8 @@ class LoginForm(Form):
 class CreateForm(Form):
     body = StringField("body")
     submit = SubmitField("create")
+
+
+class EditForm(Form):
+    body = StringField("body")
+    submit = SubmitField("edit")
