@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>upgrade</title>
+    <title>switch</title>
 </head>
 <body>
-    <form method="POST" action="/tost/{{access_token}}/propagation/upgrade">
+    <form method="POST" action="/tost/{{access_token}}/propagation/{{cmd}}">
         {{ form.hidden_tag() }}
         {{ form.token(size=32) }}
-        <input type="submit" value="upgrade">
+        <input type="submit" value="switch">
     </form>
 </body>
 </html>

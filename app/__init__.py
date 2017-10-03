@@ -1,5 +1,6 @@
 from flask import Flask, request, render_template
-from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from flask_login import LoginManager, login_user, logout_user, login_required, \
+                        current_user
 from flask_sqlalchemy import SQLAlchemy
 from requests.auth import HTTPBasicAuth
 import sys
@@ -7,7 +8,7 @@ import sys
 sys.path.insert(0, "../tost-client")
 import tostclient
 
-from forms import SignupForm, LoginForm, CreateForm, EditForm, UpgradeForm, DisableForm
+from forms import SignupForm, LoginForm, CreateForm, EditForm, SwitchForm
 from helpers import validate_email, validate_auth_token
 
 
@@ -231,11 +232,11 @@ def create_app():
     @app.route("/tost/<access_token>/propagation/upgrade", methods=["GET", "POST"])
     @login_required
     def upgrade_propagation(access_token):
-        form = UpgradeForm()
+        form = SwitchForm()
 
         if request.method == "GET":
             return render_template("upgrade.html", form=form,
-                                   access_token=access_token)
+                                   access_token=access_token, path="upgrade")
 
         elif request.method == "POST":
             if not form.validate_on_submit():
@@ -251,11 +252,11 @@ def create_app():
     @app.route("/tost/<access_token>/propagation/disable", methods=["GET", "POST"])
     @login_required
     def disable_propagation(access_token):
-        form = DisableForm()
+        form = SwitchForm()
 
         if request.method == "GET":
             return render_template("disable.html", form=form,
-                                   access_token=access_token)
+                                   access_token=access_token, path="disable")
 
         elif request.method == "POST":
             if not form.validate_on_submit():

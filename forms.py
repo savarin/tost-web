@@ -22,11 +22,6 @@ class EditForm(Form):
     submit = SubmitField("edit")
 
 
-class UpgradeForm(Form):
+class SwitchForm(Form):
     token = StringField("token")
     submit = SubmitField("upgrade")
-
-
-class DisableForm(Form):
-    token = StringField("token")
-    submit = SubmitField("disable")
