@@ -1,4 +1,5 @@
 import re
+from uuid import uuid4
 
 
 def validate_email(email):
@@ -13,3 +14,7 @@ def validate_auth_token(auth_token):
             re.match("^[a-f0-9]*$", auth_token)):
         return False
     return True
+
+
+def create_token(length):
+    return uuid4().hex[:length]

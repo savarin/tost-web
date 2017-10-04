@@ -9,7 +9,7 @@ sys.path.insert(0, "../tost-client")
 import tostclient
 
 from forms import SignupForm, LoginForm, CreateForm, EditForm, SwitchForm
-from helpers import validate_email, validate_auth_token
+from helpers import validate_email, validate_auth_token, create_token
 
 
 db = SQLAlchemy()
@@ -60,7 +60,7 @@ def create_app():
             if not validate_email(args[0]):
                 return "invalid e-mail"
 
-            return {"email": args[0]}
+            return {"email": args[0], "signup_token": create_token(8)}
 
         elif cmd == "login":
             if not validate_auth_token(args[0]):
@@ -74,7 +74,7 @@ def create_app():
             return auth
 
         elif cmd == "create":
-            data = {"body": args[0]}
+            data = {"body": urllib.unquote(args[0]), "creation_token": create_token(8)}
             return add_content(auth, data=data)
 
         ppgn_token = args[0]
